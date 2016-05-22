@@ -1,0 +1,5 @@
+AG Filetype attempts to make The Silver Searchers output a first class citizen.
+Without this plugin, the results of Ag are squeezed into the Quickfix window.
+This plugin does the reverse. It squeezes Quickfix functionality into AG's
+output.
+
