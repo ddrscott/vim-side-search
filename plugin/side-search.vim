@@ -77,6 +77,8 @@ endfunction
 " Setup custom mappings for the buffer
 function! s:custom_mappings() abort
   nnoremap <buffer> <silent> <CR> :call <SID>side_open()<CR>
+  nnoremap <buffer> <silent> <C-n> :exec "normal! nzz"<CR>:call <SID>side_open()<CR>
+  nnoremap <buffer> <silent> <C-p> :exec "normal! Nzz"<CR>:call <SID>side_open()<CR>
 endfunction
 
 " Find the line number and file from current cursor position
@@ -142,6 +144,7 @@ function! SideSearch(...) abort
   " 2. forward search the term
   " 3. go to previous window
   execute "normal! gg/" . a:1 . "\<CR>\<C-w>p"
+  let @/ = a:1
 endfunction
 
 " Create a command to call SideSearch
