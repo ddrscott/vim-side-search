@@ -35,12 +35,13 @@ function! s:percent_lines(pct) abort
   return printf('%.f', &lines * a:pct)
 endfunction
 
-" Returns: winnr() if the window's buffer name is prefixed with `a:prefix`
-"          otherwise -1
-function! s:exists_window_prefix(prefix) abort
+" Uses `b:my_buffer` to identify this as a side_search buffer.
+" Returns: `winnr` that contains the side_search managed buffer.
+function! s:my_buffer_winnr() abort
   let i = winnr('$')
+  let my_buffer_id = expand('\<SID>')
   while i > 0
-    if stridx(bufname(winbufnr(i)), a:prefix) > -1
+    if getbufvar(winbufnr(i), 'my_buffer') == my_buffer_id 
       return i
     end
     let i -= 1
@@ -48,10 +49,9 @@ function! s:exists_window_prefix(prefix) abort
   return -1
 endfunction
 
-" g:side_search_splitter - vnew or new
 function! s:defaults() abort
-  if !exists('g:ag_flags')
-    let g:ag_flags = ' --word-regexp --heading --stats -C 2'
+  if !exists('g:side_search_prg')
+    let g:side_search_prg = 'ag --word-regexp --heading --stats -C 2'
   endif
   if !exists('g:side_search_splitter')
     let g:side_search_splitter = 'vnew'
@@ -72,6 +72,7 @@ function! s:new_buffer(splitter, split_pct) abort
   endif
   setlocal nobuflisted nolist nonumber norelativenumber noswapfile wrap
   setlocal bufhidden=wipe foldcolumn=0 textwidth=0 buftype=nofile scrolloff=5 cursorline winfixheight winfixwidth
+  let b:my_buffer = expand('\<SID>')
 endfunction
 
 " Setup custom mappings for the buffer
@@ -101,6 +102,7 @@ function! s:side_open() abort
   endif
 endfunction
 
+" Parses `ag` output for the 'matches' line at the end
 function! s:parse_matches() abort
   let matcher = '\v^(\d+) match(es)?' 
   let pos = search(matcher, 'bn')
@@ -108,6 +110,12 @@ function! s:parse_matches() abort
     return getline(pos)
   endif
   return ''
+endfunction
+
+" Helper to get the `winnr` of the SideSearch window.
+" I somewhat prefer this way over maintaining a g:variable.
+function SideSearchWinnr()
+  return s:my_buffer_winnr()
 endfunction
 
 " The public facing function.
@@ -120,8 +128,7 @@ endfunction
 function! SideSearch(...) abort
   call s:defaults()
 
-  let file_prefix = '[ag '
-  let found = s:exists_window_prefix(file_prefix)
+  let found = SideSearchWinnr() 
   if found > -1
     execute '' . found . 'wincmd w'
     setlocal modifiable
@@ -132,19 +139,20 @@ function! SideSearch(...) abort
   endif
 
   " execute showing summary of stuff read (without silent)
-  execute 'read !ag ' . g:ag_flags . ' ' . join(a:000, ' ')
+  execute 'read!' g:side_search_prg join(a:000, ' ')
 
   " name the buffer something useful
-  silent execute 'file ' . file_prefix . a:1 . ', ' . s:parse_matches() . ']'
+  silent execute 'file [SS '.a:1.', '.s:parse_matches().']'
 
   " set this stuff after execute for better performance
   setlocal nomodifiable filetype=ag
 
+  " save search term in search register
+  let @/ = a:1
+
   " 1. go to top of file
   " 2. forward search the term
-  " 3. go to previous window
-  execute "normal! gg/" . a:1 . "\<CR>\<C-w>p"
-  let @/ = a:1
+  execute "normal! ggn"
 endfunction
 
 " Create a command to call SideSearch
