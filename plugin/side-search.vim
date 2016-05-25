@@ -99,6 +99,15 @@ function! s:side_open() abort
   endif
 endfunction
 
+function! s:parse_matches() abort
+  let matcher = '\v^(\d+) match(es)?' 
+  let pos = search(matcher, 'bn')
+  if pos
+    return getline(pos)
+  endif
+  return ''
+endfunction
+
 " The public facing function.
 " Accept 1 or 2 arguments which basically get passed directly
 " to the `ag` command.
@@ -119,11 +128,12 @@ function! SideSearch(...) abort
     call s:new_buffer(g:side_search_splitter, g:side_search_split_pct)
     call s:custom_mappings()
   endif
-  " name the buffer something useful
-  silent execute 'file ' . file_prefix . a:1 . ']'
 
   " execute showing summary of stuff read (without silent)
   execute 'read !ag ' . g:ag_flags . ' ' . join(a:000, ' ')
+
+  " name the buffer something useful
+  silent execute 'file ' . file_prefix . a:1 . ', ' . s:parse_matches() . ']'
 
   " set this stuff after execute for better performance
   setlocal nomodifiable filetype=ag
