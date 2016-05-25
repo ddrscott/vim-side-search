@@ -49,7 +49,7 @@ function! s:exists_window_prefix(prefix) abort
 endfunction
 
 " g:side_search_splitter - vnew or new
-function! s:side_search_defaults() abort
+function! s:defaults() abort
   if !exists('g:ag_flags')
     let g:ag_flags = ' --word-regexp --heading --stats -C 2'
   endif
@@ -57,7 +57,7 @@ function! s:side_search_defaults() abort
     let g:side_search_splitter = 'vnew'
   endif
   if !exists('g:side_search_split_pct')
-    let g:side_search_width_pct = 0.4
+    let g:side_search_split_pct = 0.4
   endif
 endfunction
 
@@ -107,7 +107,7 @@ endfunction
 " After opening the search results, the cursor should remain in it's
 " original position.
 function! SideSearch(...) abort
-  call s:side_search_defaults()
+  call s:defaults()
 
   let file_prefix = '[ag '
   let found = s:exists_window_prefix(file_prefix)
@@ -127,9 +127,14 @@ function! SideSearch(...) abort
 
   " set this stuff after execute for better performance
   setlocal nomodifiable filetype=ag
-  let @/=a:1
-  normal! <C-w>p
+
+  " 1. go to top of file
+  " 2. forward search the term
+  " 3. go to previous window
+  execute "normal! gg/" . a:1 . "\<CR>\<C-w>p"
 endfunction
 
 " Create a command to call SideSearch
-command! -complete=file -nargs=+ SideSearch call SideSearch(<f-args>)
+" Warning: `set hlsearch` must be here. I don't know why it doesn't work when I
+"          put it into SideSearch function.
+command! -complete=file -nargs=+ SideSearch call SideSearch(<f-args>) | set hlsearch
