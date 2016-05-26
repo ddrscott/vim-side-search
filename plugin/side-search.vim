@@ -22,7 +22,11 @@ endfunction
 " on s:find_largest_winnr()
 function! s:open_largest(src) abort
   execute '' . s:find_largest_winnr() . 'wincmd w'
-  execute 'edit ' . a:src
+  if bufloaded(a:src)
+    execute 'buffer ' . a:src
+  else
+    execute 'edit ' . a:src
+  endif
 endfunction
 
 " Returns: calc percentage column in Vim window
