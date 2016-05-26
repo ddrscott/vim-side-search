@@ -12,6 +12,13 @@ navigation mappings using comfortable Vim conventions.
 - configurable `g:side_search_prg` similar to `grepprg`
 - vertical or horizontal split output via `g:side_search_splitter`
 
+## Buffer Mappings
+```
+n/N         - Cursor to next/prev result
+<C-n>/<C-p> - Open next/prev in largest window
+<CR>        - Open location at cursor in largest window
+qf          - :grep! to Quickfix
+```
 
 ## Prerequisites
 We rely on [The Silver Searcher](https://github.com/ggreer/the_silver_searcher)
@@ -31,7 +38,7 @@ for more instructions.
 
 ## Global Configuration
 ```vim
-" How should we execute the search? 
+" How should we execute the search?
 " --heading and --stats are required!
 let g:side_search_prg = 'ag --word-regexp'
   \. " --ignore='*.js.map'"

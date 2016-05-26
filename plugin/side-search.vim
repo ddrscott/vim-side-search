@@ -1,7 +1,7 @@
 " Finds the largest window based on area.
 " If the current window is the largest
 " it will pick the next largest window.
-" Return: the winnr() of the largest window. 
+" Return: the winnr() of the largest window.
 function! s:find_largest_winnr() abort
   let largest = 0
   let size = 0
@@ -45,7 +45,7 @@ function! s:my_buffer_winnr() abort
   let i = winnr('$')
   let my_buffer_id = expand('\<SID>')
   while i > 0
-    if getbufvar(winbufnr(i), 'my_buffer') == my_buffer_id 
+    if getbufvar(winbufnr(i), 'my_buffer') == my_buffer_id
       return i
     end
     let i -= 1
@@ -84,6 +84,7 @@ function! s:custom_mappings() abort
   nnoremap <buffer> <silent> <CR> :call <SID>side_open()<CR>
   nnoremap <buffer> <silent> <C-n> :exec "normal! nzz"<CR>:call <SID>side_open()<CR>
   nnoremap <buffer> <silent> <C-p> :exec "normal! Nzz"<CR>:call <SID>side_open()<CR>
+  nnoremap <buffer> <silent> qf :silent exec 'grep!' b:escaped_query<CR>
 endfunction
 
 " Find the line number and file from current cursor position
@@ -92,7 +93,7 @@ endfunction
 "          If `ag` changes, this will surely break. Sorry.
 function! s:side_open() abort
   " get digits from the beginning of the line
-  let lnum = matchstr(getline('.'), '\v^\d+') 
+  let lnum = matchstr(getline('.'), '\v^\d+')
   if lnum
     " flags: b = search [b]ackwards
     "        n = no move cursor
@@ -108,7 +109,7 @@ endfunction
 
 " Parses `ag` output for the 'matches' line at the end
 function! s:parse_matches() abort
-  let matcher = '\v^(\d+) match(es)?' 
+  let matcher = '\v^(\d+) match(es)?'
   let pos = search(matcher, 'bn')
   if pos
     return getline(pos)
@@ -123,6 +124,7 @@ function! s:append_guide() abort
         \ '# n/N         - Cursor to next/prev',
         \ '# <C-n>/<C-p> - Open next/prev',
         \ '# <CR>        - Open at cursor',
+        \ '# qf          - :grep! to Quickfix',
         \ ])
   " jump to last
   call cursor(line('$'), 0)
@@ -137,14 +139,14 @@ endfunction
 " The public facing function.
 " Accept 1 or 2 arguments which basically get passed directly
 " to the `ag` command.
-" 
+"
 " This will name the buffer the search term so it's easier to identify.
 " After opening the search results, the cursor should remain in it's
 " original position.
 function! SideSearch(query, ...) abort
   call s:defaults()
 
-  let found = SideSearchWinnr() 
+  let found = SideSearchWinnr()
   if found > -1
     execute '' . found . 'wincmd w'
     setlocal modifiable
@@ -158,6 +160,7 @@ function! SideSearch(query, ...) abort
 
   " execute showing summary of stuff read (without silent)
   let b:cmd = g:side_search_prg . ' ' . shellescape(a:query) . ' ' . join(a:000, ' ')
+  let b:escaped_query = shellescape(a:query)
 
   silent execute 'read!' b:cmd
 
@@ -166,7 +169,7 @@ function! SideSearch(query, ...) abort
 
   " save search term in search register
   " strip wrapped quotes as needed
-  let @/ = a:query 
+  let @/ = a:query
 
   " 1. go to top of file
   " 2. forward search the term
