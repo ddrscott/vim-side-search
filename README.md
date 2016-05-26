@@ -62,3 +62,13 @@ command! -complete=file -nargs=+ SS execute 'SideSearch <args>'
 " or command abbreviation
 cabbrev SS SideSearch
 ```
+
+## FAQ
+
+**How to search for multi-word terms?**
+
+Escape spaces with a slash:
+
+```
+:SideSearch cats\ and\ dogs
+```
