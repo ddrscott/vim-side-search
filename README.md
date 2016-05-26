@@ -3,8 +3,7 @@ The `quickfix` window is great, but it would be nice to get some context around
 our searches. This plugin adds `ag` output to a side buffer with quick
 navigation mappings using comfortable Vim conventions.
 
-![Simple Demo](http://i.imgur.com/X2Tcf8g.gifv)
-
+![Simple Demo](side-search-demo.gif)
 
 ## Features
 - step through `ag` output instead of `quickfix` output
