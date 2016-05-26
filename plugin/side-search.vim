@@ -112,9 +112,21 @@ function! s:parse_matches() abort
   return ''
 endfunction
 
+" Appends header guide to buffer
+function! s:append_guide() abort
+  call append(0, [
+        \ '# Buffer Mappings:',
+        \ '# n/N         - Cursor to next/prev',
+        \ '# <C-n>/<C-p> - Open next/prev',
+        \ '# <CR>        - Open at cursor',
+        \ ])
+  " jump to last
+  call cursor(line('$'), 0)
+endfunction
+
 " Helper to get the `winnr` of the SideSearch window.
 " I somewhat prefer this way over maintaining a g:variable.
-function SideSearchWinnr()
+function! SideSearchWinnr()
   return s:my_buffer_winnr()
 endfunction
 
@@ -125,7 +137,7 @@ endfunction
 " This will name the buffer the search term so it's easier to identify.
 " After opening the search results, the cursor should remain in it's
 " original position.
-function! SideSearch(...) abort
+function! SideSearch(query, ...) abort
   call s:defaults()
 
   let found = SideSearchWinnr() 
@@ -138,21 +150,26 @@ function! SideSearch(...) abort
     call s:custom_mappings()
   endif
 
+  call s:append_guide()
+
   " execute showing summary of stuff read (without silent)
-  execute 'read!' g:side_search_prg join(a:000, ' ')
+  let b:cmd = g:side_search_prg . ' ' . shellescape(a:query) . ' ' . join(a:000, ' ')
+
+  silent execute 'read!' b:cmd
 
   " name the buffer something useful
-  silent execute 'file [SS '.a:1.', '.s:parse_matches().']'
-
-  " set this stuff after execute for better performance
-  setlocal nomodifiable filetype=ag
+  silent execute 'file [SS '.a:query.', '.s:parse_matches().']'
 
   " save search term in search register
-  let @/ = a:1
+  " strip wrapped quotes as needed
+  let @/ = a:query 
 
   " 1. go to top of file
   " 2. forward search the term
   execute "normal! ggn"
+
+  " set this stuff after execute for better performance
+  setlocal nomodifiable filetype=ag
 endfunction
 
 " Create a command to call SideSearch
