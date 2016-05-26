@@ -70,7 +70,7 @@ function! s:new_buffer(splitter, split_pct) abort
   else
     execute s:percent_lines(a:split_pct) . 'wincmd_'
   endif
-  setlocal nobuflisted nolist nonumber norelativenumber noswapfile wrap
+  setlocal nobuflisted nolist nonumber norelativenumber noswapfile nowrap
   setlocal bufhidden=wipe foldcolumn=0 textwidth=0 buftype=nofile scrolloff=5 cursorline winfixheight winfixwidth
   let b:my_buffer = expand('\<SID>')
 endfunction
