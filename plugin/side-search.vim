@@ -81,17 +81,32 @@ endfunction
 
 " Setup custom mappings for the buffer
 function! s:custom_mappings() abort
-  nnoremap <buffer> <silent> <CR> :call <SID>side_open()<CR>
-  nnoremap <buffer> <silent> <C-n> :exec "normal! nzz"<CR>:call <SID>side_open()<CR>
-  nnoremap <buffer> <silent> <C-p> :exec "normal! Nzz"<CR>:call <SID>side_open()<CR>
+  nnoremap <buffer> <silent> <C-n> :exec "normal! nzz"<CR>:call <SID>preview_main()<CR>
+  nnoremap <buffer> <silent> <C-p> :exec "normal! Nzz"<CR>:call <SID>preview_main()<CR>
+  nnoremap <buffer> <silent> <CR> :call <SID>preview_main()<CR>
+  nnoremap <buffer> <silent> <C-w><CR> :call <SID>open_main()<CR>
   nnoremap <buffer> <silent> qf :silent exec 'grep!' b:escaped_query<CR>
+endfunction
+
+" Appends header guide to buffer
+function! s:append_guide() abort
+  call append(0, [
+        \ '# Buffer Mappings:',
+        \ '# n/N         - Cursor to next/prev',
+        \ '# <C-n>/<C-p> - Open next/prev',
+        \ '# <CR>        - Open at cursor',
+        \ '# <C-w><CR>   - Open and jump to window',
+        \ '# qf          - :grep! to Quickfix',
+        \ ])
+  " jump to last
+  call cursor(line('$'), 0)
 endfunction
 
 " Find the line number and file from current cursor position
 " and open the found location using `open_largest`
 " Warning: This is highly targeted for `ag's` command output.
 "          If `ag` changes, this will surely break. Sorry.
-function! s:side_open() abort
+function! s:open_cursor_location(exec_after) abort
   " get digits from the beginning of the line
   let lnum = matchstr(getline('.'), '\v^\d+')
   if lnum
@@ -102,9 +117,19 @@ function! s:side_open() abort
       let file_path = getline(file_pos)
       call s:open_largest(file_path)
       execute 'normal! ' . lnum . expand('Gzz')
-      wincmd p
+      if a:exec_after != ''
+        execute a:exec_after
+      endif
     endif
   endif
+endfunction
+
+function! s:preview_main() abort
+  call s:open_cursor_location('wincmd p') 
+endfunction
+
+function! s:open_main() abort
+  call s:open_cursor_location('') 
 endfunction
 
 " Parses `ag` output for the 'matches' line at the end
@@ -115,19 +140,6 @@ function! s:parse_matches() abort
     return getline(pos)
   endif
   return ''
-endfunction
-
-" Appends header guide to buffer
-function! s:append_guide() abort
-  call append(0, [
-        \ '# Buffer Mappings:',
-        \ '# n/N         - Cursor to next/prev',
-        \ '# <C-n>/<C-p> - Open next/prev',
-        \ '# <CR>        - Open at cursor',
-        \ '# qf          - :grep! to Quickfix',
-        \ ])
-  " jump to last
-  call cursor(line('$'), 0)
 endfunction
 
 " Helper to get the `winnr` of the SideSearch window.
