@@ -29,7 +29,7 @@ the same output could also work, but that we only test using `ag` output.
 To install `ag` command on OSX:
 
 ```sh
-brew install the_silver_search
+brew install the_silver_searcher
 ```
 
 For refer to
