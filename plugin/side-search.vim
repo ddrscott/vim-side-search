@@ -55,7 +55,7 @@ endfunction
 
 function! s:defaults() abort
   if !exists('g:side_search_prg')
-    let g:side_search_prg = 'ag --word-regexp --heading --stats -C 2'
+    let g:side_search_prg = 'ag --word-regexp --heading --stats -C 2 --group'
   endif
   if !exists('g:side_search_splitter')
     let g:side_search_splitter = 'vnew'
