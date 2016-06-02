@@ -66,10 +66,17 @@ cabbrev SS SideSearch
 
 ## FAQ
 
-**How to search for multi-word terms?**
+> How to search for multi-word terms?
 
-Escape spaces with a slash:
+Surround terms with double quotes
 
 ```
-:SideSearch cats\ and\ dogs
+:SideSearch "cats and dogs"
+```
+
+> How to pass extra args to `ag`?
+
+Just do it :)
+```
+:SideSearch --js MyAwesomeComponent
 ```

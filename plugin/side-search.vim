@@ -136,10 +136,10 @@ endfunction
 function! s:parse_matches() abort
   let matcher = '\v^(\d+) match(es)?'
   let pos = search(matcher, 'bn')
-  if pos
+  if pos > 1
     return getline(pos)
   endif
-  return ''
+  return 'no matches'
 endfunction
 
 " Helper to get the `winnr` of the SideSearch window.
@@ -155,7 +155,7 @@ endfunction
 " This will name the buffer the search term so it's easier to identify.
 " After opening the search results, the cursor should remain in it's
 " original position.
-function! SideSearch(query, ...) abort
+function! SideSearch(args) abort
   call s:defaults()
 
   let found = SideSearchWinnr()
@@ -171,27 +171,32 @@ function! SideSearch(query, ...) abort
   call s:append_guide()
 
   " execute showing summary of stuff read (without silent)
-  let b:cmd = g:side_search_prg . ' ' . shellescape(a:query) . ' ' . join(a:000, ' ')
-  let b:escaped_query = shellescape(a:query)
+  let b:cmd = g:side_search_prg . ' ' . a:args
+  " Thanks: https://github.com/rking/ag.vim/blob/master/autoload/ag.vim#L154
+  let query = matchstr(a:args, "\\v(-)\@<!(\<)\@<=\\w+|['\"]\\zs.{-}\\ze['\"]")
+  let b:escaped_query = shellescape(query)
 
+  " echom 'b:cmd => '.b:cmd
   silent execute 'read!' b:cmd
 
   " name the buffer something useful
-  silent execute 'file [SS '.a:query.', '.s:parse_matches().']'
+  silent execute 'file [SS '.a:args.', '.s:parse_matches().']'
 
   " save search term in search register
   " strip wrapped quotes as needed
-  let @/ = a:query
+  let @/ = substitute(query, '\v([.\-])', "\\\\\\1", 'g')
 
   " 1. go to top of file
   " 2. forward search the term
   execute "normal! ggn"
+
+  " Turn on search highlight. Must be done this way.
+  " Thanks: https://github.com/rking/ag.vim/blob/master/autoload/ag.vim#L153
+  call feedkeys(":let &hlsearch=1 \| echo \<CR>", 'n')
 
   " set this stuff after execute for better performance
   setlocal nomodifiable filetype=ag
 endfunction
 
 " Create a command to call SideSearch
-" Warning: `set hlsearch` must be here. I don't know why it doesn't work when I
-"          put it into SideSearch function.
-command! -complete=file -nargs=+ SideSearch call SideSearch(<f-args>) | set hlsearch
+command! -complete=file -nargs=+ SideSearch call SideSearch(<q-args>)
