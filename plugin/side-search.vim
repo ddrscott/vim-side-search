@@ -117,6 +117,7 @@ function! s:open_cursor_location(exec_after) abort
       let file_path = getline(file_pos)
       call s:open_largest(file_path)
       execute 'normal! ' . lnum . expand('Gzz')
+      execute 'normal! zv'
       if a:exec_after != ''
         execute a:exec_after
       endif
