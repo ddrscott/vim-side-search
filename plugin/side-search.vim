@@ -189,7 +189,7 @@ function! SideSearch(args) abort
 
   " 1. go to top of file
   " 2. forward search the term
-  execute "normal! ggn"
+  silent! execute "normal! ggn"
 
   " Turn on search highlight. Must be done this way.
   " Thanks: https://github.com/rking/ag.vim/blob/master/autoload/ag.vim#L153
