@@ -84,6 +84,7 @@ function! s:custom_mappings() abort
   nnoremap <buffer> <silent> <C-n> :exec "normal! nzz"<CR>:call <SID>preview_main()<CR>
   nnoremap <buffer> <silent> <C-p> :exec "normal! Nzz"<CR>:call <SID>preview_main()<CR>
   nnoremap <buffer> <silent> <CR> :call <SID>preview_main()<CR>
+  nnoremap <buffer> <silent> <2-LeftMouse> :call <SID>preview_main()<CR>
   nnoremap <buffer> <silent> <C-w><CR> :call <SID>open_main()<CR>
   nnoremap <buffer> <silent> qf :silent exec 'grep!' b:escaped_query<CR>
 endfunction
@@ -92,11 +93,11 @@ endfunction
 function! s:append_guide() abort
   call append(0, [
         \ '# Buffer Mappings:',
-        \ '# n/N         - Cursor to next/prev',
-        \ '# <C-n>/<C-p> - Open next/prev',
-        \ '# <CR>        - Open at cursor',
-        \ '# <C-w><CR>   - Open and jump to window',
-        \ '# qf          - :grep! to Quickfix',
+        \ '# n/N             - Cursor to next/prev',
+        \ '# <C-n>/<C-p>     - Open next/prev',
+        \ '# <CR>|<DblClick> - Open at cursor',
+        \ '# <C-w><CR>       - Open and jump to window',
+        \ '# qf              - :grep! to Quickfix',
         \ ])
   " jump to last
   call cursor(line('$'), 0)

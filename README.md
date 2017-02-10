@@ -14,11 +14,11 @@ navigation mappings using comfortable Vim conventions.
 
 ## Buffer Mappings
 ```
-n/N         - Cursor to next/prev result
-<C-n>/<C-p> - Open next/prev in largest window
-<CR>        - Open location at cursor in largest window
-<C-w><CR>   - Open and jump to window
-qf          - :grep! to Quickfix
+n/N             - Cursor to next/prev
+<C-n>/<C-p>     - Open next/prev
+<CR>|<DblClick> - Open at cursor
+<C-w><CR>       - Open and jump to window
+qf              - :grep! to Quickfix
 ```
 
 ## Prerequisites
