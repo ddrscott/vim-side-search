@@ -71,6 +71,7 @@ function! s:new_buffer(splitter, split_pct) abort
   execute a:splitter
   if a:splitter == 'vnew'
     execute s:percent_columns(a:split_pct) . 'wincmd|'
+    execute 'wincmd L'
   else
     execute s:percent_lines(a:split_pct) . 'wincmd_'
   endif
