@@ -152,24 +152,21 @@ function! SideSearchWinnr()
 endfunction
 
 function! s:guessProjectRoot()
-  let l:splitsearchdir = split(getcwd(), "/")
+  let l:cwd = getcwd()
+  let l:maxdistance = len(split(l:cwd, '/')) - 2
   let l:searchdir = ''
 
-  while len(l:splitsearchdir) > 2
+  while len(split(l:searchdir, '/')) < l:maxdistance
     for l:marker in ['.rootdir', '.git', '.hg', '.svn', 'bzr', '_darcs', 'build.xml']
       let l:dir = l:searchdir.l:marker
-      " found it! Return the dir
       if filereadable(l:dir) || isdirectory(l:dir)
         return l:searchdir
       endif
     endfor
-    " Splice the list to get rid of the tail directory
-    let l:splitsearchdir = l:splitsearchdir[0:-2]
     let l:searchdir = '../'.l:searchdir
   endwhile
 
-  " Nothing found, fallback to current working dir
-  return getcwd()
+  return l:cwd
 endfunction
 
 " The public facing function.
