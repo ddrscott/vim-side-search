@@ -153,16 +153,19 @@ endfunction
 
 function! s:guessProjectRoot()
   let l:splitsearchdir = split(getcwd(), "/")
+  let l:searchdir = ''
 
   while len(l:splitsearchdir) > 2
-    let l:searchdir = '/'.join(l:splitsearchdir, '/').'/'
     for l:marker in ['.rootdir', '.git', '.hg', '.svn', 'bzr', '_darcs', 'build.xml']
+      let l:dir = l:searchdir.l:marker
       " found it! Return the dir
-      if filereadable(l:searchdir.l:marker) || isdirectory(l:searchdir.l:marker)
+      if filereadable(l:dir) || isdirectory(l:dir)
         return l:searchdir
       endif
     endfor
-    let l:splitsearchdir = l:splitsearchdir[0:-2] " Splice the list to get rid of the tail directory
+    " Splice the list to get rid of the tail directory
+    let l:splitsearchdir = l:splitsearchdir[0:-2]
+    let l:searchdir = '../'.l:searchdir
   endwhile
 
   " Nothing found, fallback to current working dir
