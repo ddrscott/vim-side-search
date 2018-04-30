@@ -151,6 +151,24 @@ function! SideSearchWinnr()
   return s:my_buffer_winnr()
 endfunction
 
+function! s:guessProjectRoot()
+  let l:cwd = getcwd()
+  let l:maxdistance = len(split(l:cwd, '/')) - 2
+  let l:searchdir = ''
+
+  while len(split(l:searchdir, '/')) < l:maxdistance
+    for l:marker in ['.rootdir', '.git', '.hg', '.svn', 'bzr', '_darcs', 'build.xml']
+      let l:dir = l:searchdir.l:marker
+      if filereadable(l:dir) || isdirectory(l:dir)
+        return l:searchdir
+      endif
+    endfor
+    let l:searchdir = '../'.l:searchdir
+  endwhile
+
+  return l:cwd
+endfunction
+
 " The public facing function.
 " Accept 1 or 2 arguments which basically get passed directly
 " to the `ag` command.
@@ -173,8 +191,10 @@ function! SideSearch(args) abort
 
   call s:append_guide()
 
+  " determine root directory
+  let l:cwd = s:guessProjectRoot()
   " execute showing summary of stuff read (without silent)
-  let b:cmd = g:side_search_prg . ' ' . a:args
+  let b:cmd = g:side_search_prg . ' ' . a:args . ' ' . l:cwd
   " Thanks: https://github.com/rking/ag.vim/blob/master/autoload/ag.vim#L154
   let query = matchstr(a:args, "\\v(-)\@<!(\<)\@<=\\w+|['\"]\\zs.{-}\\ze['\"]")
   let b:escaped_query = shellescape(query)
