@@ -128,11 +128,11 @@ function! s:open_cursor_location(exec_after) abort
 endfunction
 
 function! s:preview_main() abort
-  call s:open_cursor_location('wincmd p') 
+  call s:open_cursor_location('wincmd p')
 endfunction
 
 function! s:open_main() abort
-  call s:open_cursor_location('') 
+  call s:open_cursor_location('')
 endfunction
 
 " Parses `ag` output for the 'matches' line at the end
@@ -200,7 +200,11 @@ function! SideSearch(args) abort
   let b:escaped_query = shellescape(query)
 
   " echom 'b:cmd => '.b:cmd
-  silent execute 'read!' b:cmd
+  let l:content = split(system(b:cmd), '\n', 1)
+
+  call append(line('$'), l:content)
+
+  "silent execute 'read!' b:cmd
 
   " name the buffer something useful
   silent execute 'file [SS '.a:args.', '.s:parse_matches().']'
@@ -219,7 +223,40 @@ function! SideSearch(args) abort
 
   " set this stuff after execute for better performance
   setlocal nomodifiable filetype=ag
+
+  let l:exp = '\v^(\d+[:-]|--)@!.+$'
+  let l:filenames = map(l:content, 'matchstr(v:val, l:exp)')
+
+  let l:exp = '\v\.\zs\w+$'
+  let l:exts = filter(uniq(sort(map(l:filenames, 'matchstr(v:val, l:exp)'))), 'v:val != ""')
+
+  let l:ftdetect = []
+  for ext in l:exts
+      try
+          call s:syn_include(ext)
+      catch
+          if len(l:ftdetect) == 0
+            let l:ftdetect = split(execute('autocmd filetypedetect'), "\n")
+          endif
+
+          let l:matching = uniq(sort(filter(l:ftdetect, 'v:val =~ "\*\.".ext."\\s"')))
+
+          if len(l:matching) == 1 && l:matching[0]  =~ 'setf'
+              let l:ext = matchstr(l:matching[0], 'setf\s\+\zs\k\+')
+
+              call s:syn_include(l:ext)
+          endif
+      endtry
+
+      exec "syn region ag" . ext .
+              \ " start=/\\v^\\d+[:-]/ms=e+1 end=/$/ contains=@" . ext .
+              \ " keepend containedin=agContext"
+  endfor
 endfunction
+
+func! s:syn_include(ext)
+    exec "syn include @" . a:ext . " syntax/" . a:ext . ".vim"
+endfunc!
 
 " Create a command to call SideSearch
 command! -complete=file -nargs=+ SideSearch call SideSearch(<q-args>)
