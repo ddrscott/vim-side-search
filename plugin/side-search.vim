@@ -55,7 +55,11 @@ endfunction
 
 function! s:defaults() abort
   if !exists('g:side_search_prg')
-    let g:side_search_prg = 'ag --word-regexp --heading --stats -C 2 --group'
+    if executable('rg')
+      let g:side_search_prg = 'rg --word-regexp --heading --stats -C 2 --case-sensitive --line-number'
+    else
+      let g:side_search_prg = 'ag --word-regexp --heading --stats -C 2 --group'
+    endif
   endif
   if !exists('g:side_search_splitter')
     let g:side_search_splitter = 'vnew'
@@ -218,7 +222,7 @@ function! SideSearch(args) abort
   call feedkeys(":let &hlsearch=1 \| echo \<CR>", 'n')
 
   " set this stuff after execute for better performance
-  setlocal nomodifiable filetype=ag
+  setlocal nomodifiable filetype=rg
 endfunction
 
 " Create a command to call SideSearch
