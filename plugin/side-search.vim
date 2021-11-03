@@ -156,6 +156,9 @@ function! SideSearchWinnr()
 endfunction
 
 function! s:guessProjectRoot()
+  if exists("*FindRootDirectory")
+    return FindRootDirectory()
+  endif
   let l:cwd = getcwd()
   let l:maxdistance = len(split(l:cwd, '/')) - 2
   let l:searchdir = ''
