@@ -87,3 +87,15 @@ The `ag` program was deprecated back in 2016. https://github.com/rking/ag.vim/is
 We moved to `ripgrep` as a modern alternative.
 Ultimately, any program can be used by setting `g:side_search_prg` and has output matching out syntax highlighter should
 work.
+
+
+> How to change project root detection?
+
+This plugin uses various methods for attempting to find the project root. [See guessProjectRoot for more details.](https://github.com/ddrscott/vim-side-search/blob/master/plugin/side-search.vim#L158)
+To disable the guessing and force an explicit project directory create the following function in your `$MYVIMRC`:
+
+```vim
+function! FindRootDirectory()
+  return getcwd()
+endfunction
+```
