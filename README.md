@@ -99,3 +99,18 @@ function! FindRootDirectory()
   return getcwd()
 endfunction
 ```
+
+> How to search in a root-relative subdirectory?
+
+Add this to your configuration:
+```vim
+function! SideSearchRestrictedAndRelative(query, ...) abort
+  let l:subdir = get(a:, 1, '.')
+  call SideSearch(shellescape(a:query, 1), '/' . l:subdir)
+endfunction
+command! -complete=file -nargs=+ SideSearchRestrictedAndRelative call SideSearchRestrictedAndRelative(<f-args>)
+```
+
+To search in root-relative directory, do: `:SideSearchRestrictedAndRelative some\ query some/root-relative/directory`.
+
+Having the command abbreviation `cabbrev SS SideSearchRestrictedAndRelative` in config would make this shorter: `:SS some\ query some/root-relative/directory`
