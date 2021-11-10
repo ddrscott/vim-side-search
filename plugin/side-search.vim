@@ -187,7 +187,7 @@ endfunction
 " This will name the buffer the search term so it's easier to identify.
 " After opening the search results, the cursor should remain in it's
 " original position.
-function! SideSearch(args) abort
+function! SideSearch(args, ...) abort
   call s:defaults()
 
   let found = SideSearchWinnr()
@@ -204,16 +204,10 @@ function! SideSearch(args) abort
 
   " determine root directory
   let l:cwd = s:guessProjectRoot()
-  let l:subdirIndex = strridx(a:args, ' ')
-  if l:subdirIndex > -1
-    let l:args = strpart(a:args, 0, l:subdirIndex)
-    let l:subdir = '/' . strpart(a:args, l:subdirIndex + 1)
-  else
-    let l:args = a:args
-    let l:subdir = ''
-  endif
+  " take the relative subdirectory, if present
+  let l:subdir = get(a:, 1, '')
   " execute showing summary of stuff read (without silent)
-  let b:cmd = g:side_search_prg . ' ' . l:args . ' ' . l:cwd . l:subdir
+  let b:cmd = g:side_search_prg . ' ' . a:args . ' ' . l:cwd . l:subdir
   " Thanks: https://github.com/rking/ag.vim/blob/master/autoload/ag.vim#L154
   let query = matchstr(a:args, "\\v(-)\@<!(\<)\@<=\\w+|['\"]\\zs.{-}\\ze['\"]")
   let b:escaped_query = shellescape(query)
