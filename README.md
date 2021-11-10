@@ -111,6 +111,6 @@ endfunction
 command! -complete=file -nargs=+ SideSearchRestrictedAndRelative call SideSearchRestrictedAndRelative(<f-args>)
 ```
 
-To search in root-relative directory, do: `:SideSearchRestrictedAndRelative some\ query some/root-relative/directory`.
+To search in a root-relative directory, do: `:SideSearchRestrictedAndRelative some\ query some/root-relative/directory`.
 
-Having the command abbreviation `cabbrev SS SideSearchRestrictedAndRelative` in config would make this shorter: `:SS some\ query some/root-relative/directory`
+Having the command abbreviation `cabbrev SS SideSearchRestrictedAndRelative` in config would make this shorter: `:SS some\ query some/root-relative/directory`.
