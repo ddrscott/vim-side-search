@@ -105,8 +105,9 @@ endfunction
 Add this to your configuration:
 ```vim
 function! SideSearchRestrictedAndRelative(query, ...) abort
-  let l:subdir = get(a:, 1, '.')
-  call SideSearch(shellescape(a:query, 1), '/' . l:subdir)
+  let l:subdir = get(a:, 1, '')
+  let l:subdir = (l:subdir == '' ? '' : '/') . l:subdir
+  call SideSearch(shellescape(a:query, 1), l:subdir)
 endfunction
 command! -complete=file -nargs=+ SideSearchRestrictedAndRelative call SideSearchRestrictedAndRelative(<f-args>)
 ```
