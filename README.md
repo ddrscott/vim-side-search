@@ -68,17 +68,26 @@ cabbrev SS SideSearch
 
 > How to search for multi-word terms?
 
-Surround terms with double quotes
+Use backslash `\` to escape spaces. Double quoted strings are no longer supported.
 
 ```
-:SideSearch "cats and dogs"
+:SideSearch cats\ and\ dogs
 ```
 
-> How to pass extra args to `rg`?
+> How to pass extra arguments to `rg`?
 
-Just do it :)
+Just do it™, but please add search terms first and extra arguments afterwards.
 ```
-:SideSearch -t js MyAwesomeComponent
+:SideSearch MyAwesomeComponent -t js
+```
+
+> How to restrict the search path?
+
+Pass the search path as the last argument. If it is a valid relative or absolute path it is passed to the underlying
+search program. Otherwise, SideSearch will guess the project's root directory.
+
+```
+:SideSearch MyAwesomeComponent -t js relative/path
 ```
 
 > What happened to using The Silver Searcher?
