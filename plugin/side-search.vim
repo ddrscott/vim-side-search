@@ -91,7 +91,7 @@ function! s:custom_mappings() abort
   nnoremap <buffer> <silent> <CR> :call <SID>preview_main()<CR>
   nnoremap <buffer> <silent> <2-LeftMouse> :call <SID>preview_main()<CR>
   nnoremap <buffer> <silent> <C-w><CR> :call <SID>open_main()<CR>
-  nnoremap <buffer> <silent> qf :silent exec 'grep!' b:escaped_query<CR>
+  nnoremap <buffer> <silent> qf :silent exec 'grep!' b:escaped<CR>
 endfunction
 
 " Appends header guide to buffer
@@ -187,7 +187,7 @@ endfunction
 " This will name the buffer the search term so it's easier to identify.
 " After opening the search results, the cursor should remain in it's
 " original position.
-function! SideSearch(args) abort
+function! SideSearch(term, ...) abort
   call s:defaults()
 
   let found = SideSearchWinnr()
@@ -202,23 +202,25 @@ function! SideSearch(args) abort
 
   call s:append_guide()
 
-  " determine root directory
-  let l:cwd = s:guessProjectRoot()
-  " execute showing summary of stuff read (without silent)
-  let b:cmd = g:side_search_prg . ' ' . a:args . ' ' . l:cwd
-  " Thanks: https://github.com/rking/ag.vim/blob/master/autoload/ag.vim#L154
-  let query = matchstr(a:args, "\\v(-)\@<!(\<)\@<=\\w+|['\"]\\zs.{-}\\ze['\"]")
-  let b:escaped_query = shellescape(query)
+  let b:escaped = shellescape(a:term)
+  let b:cmd = g:side_search_prg . ' ' . b:escaped . ' ' . join(a:000, ' ')
 
+  " Guess the directory if value path is not provided as last argument
+  if len(a:000) == 0 || isdirectory(a:000[-1]) == 0
+     " guess the directory
+    let l:cwd = s:guessProjectRoot()
+    let b:cmd = b:cmd . l:cwd
+  endif
+
+  " echom 'a:term => ' . a:term
   " echom 'b:cmd => '.b:cmd
   silent execute 'read!' b:cmd
 
   " name the buffer something useful
-  silent execute 'file [SS '.a:args.', '.s:parse_matches().']'
+  silent execute 'file [SS ' . b:escaped . ', ' . s:parse_matches() . ']'
 
   " save search term in search register
-  " strip wrapped quotes as needed
-  let @/ = substitute(query, '\v([.\-])', "\\\\\\1", 'g')
+  let @/ = a:term
 
   " 1. go to top of file
   " 2. forward search the term
@@ -233,4 +235,4 @@ function! SideSearch(args) abort
 endfunction
 
 " Create a command to call SideSearch
-command! -complete=file -nargs=+ SideSearch call SideSearch(<q-args>)
+command! -complete=file -nargs=+ SideSearch call SideSearch(<f-args>)
