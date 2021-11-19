@@ -203,13 +203,14 @@ function! SideSearch(term, ...) abort
   call s:append_guide()
 
   let b:escaped = shellescape(a:term)
-  let b:cmd = g:side_search_prg . ' ' . b:escaped . ' ' . join(a:000, ' ')
+  let b:cmd = g:side_search_prg . ' ' . b:escaped
 
   " Guess the directory if value path is not provided as last argument
   if len(a:000) == 0 || isdirectory(a:000[-1]) == 0
-     " guess the directory
     let l:cwd = s:guessProjectRoot()
-    let b:cmd = b:cmd . l:cwd
+    let b:cmd = b:cmd . ' ' . join(a:000, ' ') . ' ' . fnamemodify(l:cwd, ':p')
+  else
+    let b:cmd = b:cmd . ' ' . join(a:000[0:-2], ' ') . ' ' . fnamemodify(a:000[-1], ':p')
   endif
 
   " echom 'a:term => ' . a:term
