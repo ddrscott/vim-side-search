@@ -21,7 +21,6 @@ endfunction
 " Open `src` file in the largest window based
 " on s:find_largest_winnr()
 function! s:open_largest(src) abort
-  "execute '' . s:find_largest_winnr() . 'wincmd w'
   execute '' . s:sidesearch_caller_window() . 'wincmd w'
   if bufloaded(a:src)
     execute 'buffer ' . a:src
