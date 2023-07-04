@@ -21,7 +21,7 @@ endfunction
 " Open `src` file in the largest window based
 " on s:find_largest_winnr()
 function! s:open_largest(src) abort
-  execute '' . s:find_largest_winnr() . 'wincmd w'
+  execute '' . s:sidesearch_caller_window() . 'wincmd w'
   if bufloaded(a:src)
     execute 'buffer ' . a:src
   else
@@ -30,13 +30,13 @@ function! s:open_largest(src) abort
 endfunction
 
 " Returns: calc percentage column in Vim window
-function! s:percent_columns(pct) abort
-  return printf('%.f', &columns * a:pct)
+function! s:percent_columns(columns, pct) abort
+  return printf('%.f', a:columns * a:pct)
 endfunction
 
 " Returns: calc percentage lines in Vim window
-function! s:percent_lines(pct) abort
-  return printf('%.f', &lines * a:pct)
+function! s:percent_lines(lines, pct) abort
+  return printf('%.f', a:lines * a:pct)
 endfunction
 
 " Uses `b:my_buffer` to identify this as a side_search buffer.
@@ -47,6 +47,19 @@ function! s:my_buffer_winnr() abort
   while i > 0
     if getbufvar(winbufnr(i), 'my_buffer') == my_buffer_id
       return i
+    end
+    let i -= 1
+  endwhile
+  return -1
+endfunction
+
+function! s:sidesearch_caller_window() abort
+  let i = winnr('$')
+  let my_buffer_id = expand('\<SID>')
+  while i > 0
+    if getbufvar(winbufnr(i), 'my_buffer') == my_buffer_id
+      let callerwinidx = getbufvar(winbufnr(i), 'callerwindow') 
+      return callerwinidx
     end
     let i -= 1
   endwhile
@@ -71,17 +84,21 @@ endfunction
 
 " Creates a new buffer and `setlocal` settings to
 " turn off decorations and make it a non-editable scratch buffer.
-function! s:new_buffer(splitter, split_pct) abort
+function! s:new_buffer(splitter, split_pct, callerwindow_id) abort
+  let callerwindow_width = winwidth(0)
+  let callerwindow_height = winheight(0)
   execute a:splitter
   if a:splitter == 'vnew'
-    execute s:percent_columns(a:split_pct) . 'wincmd|'
-    execute 'wincmd L'
+    execute 'vert resize ' . s:percent_columns(callerwindow_width, a:split_pct)
+    execute 'wincmd x'
+    execute 'wincmd w'
   else
-    execute s:percent_lines(a:split_pct) . 'wincmd_'
+    execute s:percent_lines(callerwindow_height, a:split_pct) . 'wincmd_'
   endif
   setlocal nobuflisted nolist nonumber norelativenumber noswapfile nowrap
   setlocal bufhidden=wipe foldcolumn=0 textwidth=0 buftype=nofile scrolloff=5 cursorline winfixheight winfixwidth
   let b:my_buffer = expand('\<SID>')
+  let b:callerwindow = a:callerwindow_id
 endfunction
 
 " Setup custom mappings for the buffer
@@ -155,6 +172,10 @@ function! SideSearchWinnr()
   return s:my_buffer_winnr()
 endfunction
 
+function! SideSearchCallingWindowNr()
+  return s:sidesearch_caller_window()
+endfunction
+
 function! s:guessProjectRoot()
   if exists("*FindRootDirectory")
     let l:root = FindRootDirectory()
@@ -191,12 +212,14 @@ function! SideSearch(term, ...) abort
   call s:defaults()
 
   let found = SideSearchWinnr()
+  " save current winnr so that i can set it later on in the sidesearch win
+  let callerwindow_id = winnr()
   if found > -1
     execute '' . found . 'wincmd w'
     setlocal modifiable
     execute '0,$d'
   else
-    call s:new_buffer(g:side_search_splitter, g:side_search_split_pct)
+    call s:new_buffer(g:side_search_splitter, g:side_search_split_pct, callerwindow_id)
     call s:custom_mappings()
   endif
 
