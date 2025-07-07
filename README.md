@@ -68,10 +68,24 @@ cabbrev SS SideSearch
 
 > How to search for multi-word terms?
 
-Use backslash `\` to escape spaces. Double quoted strings are no longer supported.
+You can search for multiple words in several ways:
 
+1. **Without quotes** - Multiple words are automatically joined:
 ```
-:SideSearch cats\ and\ dogs
+:SideSearch cats and dogs
+```
+This searches for the phrase "cats and dogs"
+
+2. **With quotes** - Use double or single quotes for explicit phrases:
+```
+:SideSearch "cats and dogs"
+:SideSearch 'cats and dogs'
+```
+
+3. **With flags** - Flags starting with `-` are recognized and passed to ripgrep:
+```
+:SideSearch function definition --type vim
+:SideSearch "error message" -t js --ignore '*.map'
 ```
 
 > How to pass extra arguments to `rg`?

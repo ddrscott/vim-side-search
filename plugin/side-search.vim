@@ -181,14 +181,68 @@ function! s:guessProjectRoot()
 endfunction
 
 " The public facing function.
-" Accept 1 or 2 arguments which basically get passed directly
-" to the `ag` command.
+" Accepts a raw string that gets parsed to extract the search term and optional arguments.
+" The search term can be:
+" - A single word: :SideSearch foo
+" - Multiple words: :SideSearch foo bar baz (searches for "foo bar baz")
+" - Quoted string: :SideSearch "foo bar" -t js
+" - With flags: :SideSearch foo -t js --ignore '*.map'
 "
 " This will name the buffer the search term so it's easier to identify.
 " After opening the search results, the cursor should remain in it's
 " original position.
-function! SideSearch(term, ...) abort
+function! SideSearch(raw_args) abort
   call s:defaults()
+
+  " Parse the raw arguments to extract search term and flags
+  let args = a:raw_args
+  let term = ''
+  let extra_args = []
+  let path = ''
+  
+  " Check if the string starts with a quote
+  if args[0] == '"' || args[0] == "'"
+    let quote_char = args[0]
+    let end_quote = stridx(args, quote_char, 1)
+    if end_quote > 0
+      " Extract quoted term
+      let term = args[1:end_quote-1]
+      let remaining = strpart(args, end_quote+1)
+      let extra_args = split(remaining)
+    else
+      " No closing quote found, treat entire string as search term
+      let term = args
+    endif
+  else
+    " No quotes, need to intelligently split term from flags/path
+    let parts = split(args)
+    let i = 0
+    let term_parts = []
+    
+    " Collect parts until we hit a flag (starts with -) or valid path
+    while i < len(parts)
+      let part = parts[i]
+      if part[0] == '-' || (i == len(parts)-1 && isdirectory(expand(part)))
+        " This is a flag or the last item is a directory
+        break
+      endif
+      call add(term_parts, part)
+      let i += 1
+    endwhile
+    
+    " Join the term parts
+    let term = join(term_parts, ' ')
+    
+    " Remaining parts are extra args
+    if i < len(parts)
+      let extra_args = parts[i:]
+    endif
+  endif
+  
+  " Check if last argument is a path
+  if len(extra_args) > 0 && isdirectory(expand(extra_args[-1]))
+    let path = remove(extra_args, -1)
+  endif
 
   let found = SideSearchWinnr()
   if found > -1
@@ -202,18 +256,23 @@ function! SideSearch(term, ...) abort
 
   call s:append_guide()
 
-  let b:escaped = shellescape(a:term)
+  let b:escaped = shellescape(term)
   let b:cmd = g:side_search_prg . ' ' . b:escaped
 
-  " Guess the directory if value path is not provided as last argument
-  if len(a:000) == 0 || isdirectory(a:000[-1]) == 0
-    let l:cwd = s:guessProjectRoot()
-    let b:cmd = b:cmd . ' ' . join(a:000, ' ') . ' ' . fnamemodify(l:cwd, ':p')
-  else
-    let b:cmd = b:cmd . ' ' . join(a:000[0:-2], ' ') . ' ' . fnamemodify(a:000[-1], ':p')
+  " Add extra arguments if any
+  if len(extra_args) > 0
+    let b:cmd = b:cmd . ' ' . join(extra_args, ' ')
   endif
 
-  " echom 'a:term => ' . a:term
+  " Add path
+  if path != ''
+    let b:cmd = b:cmd . ' ' . fnamemodify(path, ':p')
+  else
+    let l:cwd = s:guessProjectRoot()
+    let b:cmd = b:cmd . ' ' . fnamemodify(l:cwd, ':p')
+  endif
+
+  " echom 'term => ' . term
   " echom 'b:cmd => '.b:cmd
   silent execute 'read!' b:cmd
 
@@ -221,7 +280,7 @@ function! SideSearch(term, ...) abort
   silent execute 'file [SS ' . b:escaped . ', ' . s:parse_matches() . ']'
 
   " save search term in search register
-  let @/ = a:term
+  let @/ = term
 
   " 1. go to top of file
   " 2. forward search the term
@@ -235,5 +294,5 @@ function! SideSearch(term, ...) abort
   setlocal nomodifiable filetype=rg
 endfunction
 
-" Create a command to call SideSearch
-command! -complete=file -nargs=+ SideSearch call SideSearch(<f-args>)
+" Create a command to call SideSearch with raw string
+command! -complete=file -nargs=+ SideSearch call SideSearch(<q-args>)
